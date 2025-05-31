@@ -29,7 +29,7 @@ class OpinionController extends Controller
     public function show(){
         $opinions= Opinion::all();
         return $this->responseWithJson(
-            new OpinionResource($opinions),
+            OpinionResource::collection($opinions),
             true
         );
 

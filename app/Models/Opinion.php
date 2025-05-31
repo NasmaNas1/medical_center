@@ -11,5 +11,5 @@ class Opinion extends Model
     
     protected $fillable = [
         'opinion',
-    ]
+    ];
 }
