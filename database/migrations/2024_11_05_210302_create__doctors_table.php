@@ -15,7 +15,7 @@ return new class extends Migration
         //     $table->id();
         //     $table->string('name');
         //     $table->string('image')->nullable();
-        //     $table->foreignId('specialization_id')->references('id')->on('Specializations')->onDelete('cascade');
+        //     $table->foreignId('specialization_id')->references('id')->on('specializations')->onDelete('cascade');
         //     $table->string('email');
         //     $table->text('about_doctor');
         //     $table->timestamps();
