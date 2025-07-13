@@ -7,12 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Specialization;
 use App\Models\Patient;
 use App\Models\Appointment;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Hash; 
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Sanctum\HasApiTokens;
 
 class Doctor extends Model
 {
-    use HasFactory ,  HasApiTokens;
+    use HasFactory ,  HasApiTokens , Notifiable;
    
     protected $fillable = [
         'name',
@@ -21,11 +23,17 @@ class Doctor extends Model
         'email',
         'about_doctor',
         'practice',
+        'password',
     ];
 
     public function Specialization()
     {
         return $this->belongsTo(Specialization::class);
+    }
+
+       public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function Patients(){
@@ -35,4 +43,21 @@ class Doctor extends Model
   {
     return $this->hasMany(Appointment::class);
   }
+  public function schedules()
+  {
+    return $this->hasMany(DoctorSchedule::class);
+  }
+
+
+  public function setPasswordAttribute($value)
+    {
+        $this->attributes['password'] = Hash::make($value);
+    }
+  protected $hidden = [
+    'password', 
+    'remember_token',
+];
+ protected $casts = [
+   'user_type' => 'string'
+    ];
 }

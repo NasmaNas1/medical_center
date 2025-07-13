@@ -40,6 +40,12 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        'doctor' => [
+        'driver' => 'sanctum',
+        'provider' => 'doctors',
+         ],
+
         'patients' => [
             'driver' => 'sanctum',
             'provider' => 'patients', 
@@ -72,6 +78,12 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
         ],
+
+        'doctors' => [
+        'driver' => 'eloquent',
+        'model' => App\Models\Doctor::class,
+      ],
+
       'patients'=> [
         'driver' => 'eloquent',
         'model' => App\Models\Patient::class,

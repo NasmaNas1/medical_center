@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use App\Models\Doctor;
+use Illuminate\Notifications\Notifiable;
 use App\Models\Appointment;
 
 
@@ -16,7 +17,7 @@ use App\Models\Appointment;
 class Patient extends Authenticatable
 {
 
-    use HasFactory , HasApiTokens;
+    use HasFactory , HasApiTokens , Notifiable;
     protected $primaryKey = 'uuid';
     public $incrementing = false;
     protected $keyType = 'string';

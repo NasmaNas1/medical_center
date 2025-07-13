@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use App\Models\Patient;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -15,4 +15,12 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect('/admin/login');
+});
+
+
+
+Route::get('/test-token', function () {
+    $patient = Patient::first(); // أو حسب كيف عم تجيب المريض
+    $token = $patient->createToken('auth-token', ['patient'])->plainTextToken;
+    return response()->json(['token' => $token]);
 });

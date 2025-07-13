@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\PatientResource;
+use App\Http\Resources\DoctorResource;
+use App\Models\Doctor;
 
 class LoginController extends Controller
 {
@@ -20,37 +22,55 @@ class LoginController extends Controller
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required|string',
+            'user_type' => 'required|in:patient,doctor' 
         ], [
             'email.required' => 'يرجى إدخال البريد الإلكتروني',
             'email.email' => 'صيغة البريد الإلكتروني غير صحيحة',
             'password.required' => 'يرجى إدخال كلمة المرور',
+            'user_type.required' => 'يرجى تحديد نوع المستخدم (pationt , doctor)',
+            'user_type.in' => 'نوع المستخدم غير صحيح'
+     
         ]);
-
-        $patient = Patient::where('email', $request->email)->first();
-
-        // التحقق من كلمة المرور
-        if ($patient && Hash::check($request->password, $patient->password)) {
-            $token = $patient->createToken('patient-token')->plainTextToken;
-    
+        if($validator->fails()){
             return $this->responseWithJson(
-                [
-                    'patient' => new PatientResource($patient),
-                    'token' => $token,
-                ],
-                true,
-                null,
-                200
-            );
-        }
-        
-    
-        return $this->responseWithJson(
             null,
             false,
             'بيانات الدخول غير صحيحة',
             401
         );
+        }
+      
+if ($request->user_type === 'patient') {
+        $user = Patient::where('email', $request->email)->first();
+    } else {
+        $user = Doctor::where('email', $request->email)->first();
     }
+
+    // التحقق من صحة بيانات الدخول
+    if (!$user || !Hash::check($request->password, $user->password)) {
+        return $this->responseWithJson(
+            null,
+            false,
+            'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+            401
+        );
+    }
+
+    // إنشاء توكن
+    $token = $user->createToken('auth-token',[$request->user_type])->plainTextToken;
+            return $this->responseWithJson(
+                [
+                    'token' => $token,
+                    'user_type' => $request->user_type,
+                    'user' => $request->user_type === 'doctor' 
+                    ? new DoctorResource($user) 
+                    : new PatientResource($user),
+    
+                ],
+                true,
+                null,
+                200
+            );    }
 
     public function logout(Request $request)
     {

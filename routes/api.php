@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\SpecializationController;
 use App\Http\Controllers\Api\DoctorController;
 use App\Http\Controllers\Api\OpinionController;
 use App\Models\Doctor;
+use App\Http\Controllers\Api\ReportController;
 use App\Models\Specialization;
 
 /*
@@ -32,24 +33,28 @@ use App\Models\Specialization;
 // });
 
 Route::post('/login',[LoginController::class , 'login']);
-Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth:sanctum');
 Route::post('/register', [RegisterController::class, 'register']);
-
-
-
-Route::get('/patient/{id}', [PatientController::class, 'index']);
-Route::post('/patient/update/{id}', [PatientController::class, 'update']);
-
-
+Route::get('/specialization',[SpecializationController::class,'index']);
 Route::get('/doctor/{id}',[DoctorController::class , 'index']);
 Route::get('/doctor/{specialization_id}', [DoctorController::class, 'getBySpecialization']);
-
-Route::post('/appointment',[AppointmentController::class , 'bookAppointment']);
-Route::get('/doctors/{id}/availableSlots',[AppointmentController::class ,'getAvailableSlots']);
-
-
-Route::get('/specialization',[SpecializationController::class,'index']);
-
-
 Route::get('/showOpinions',[OpinionController::class,'show']);
-Route::post('/opinions',[OpinionController::class,'opinion']);
+
+
+Route::middleware(['auth:sanctum', 'patient'])->group(function () {
+    Route::post('/logout', [LoginController::class, 'logout']);
+    Route::get('/patient/{id}', [PatientController::class, 'index']);
+    Route::post('/patient/update/{id}', [PatientController::class, 'update']);
+    Route::post('/appointment',[AppointmentController::class , 'bookAppointment']);
+    Route::post('/opinions',[OpinionController::class,'opinion']);
+});
+
+
+Route::middleware(['auth:sanctum', 'doctor'])->group(function () {
+    Route::post('/reports', [ReportController::class, 'store']);
+    Route::get('/doctors/{id}/availableSlots/{subSpecializationId}',[AppointmentController::class ,'getAvailableSlots']);
+    Route::get('/doctors/{id}/getWeeklyAppointments',[AppointmentController::class,'getWeeklyAppointments']);
+    Route::get('/doctors/{id}/getAppointmentsByStatus/{status}',[AppointmentController::class,'getAppointmentsByStatus']);
+});
+
+
+Route::get('/patients/{patient_uuid}/reports', [ReportController::class, 'getPatientReports']);

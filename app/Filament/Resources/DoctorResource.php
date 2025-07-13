@@ -6,6 +6,7 @@ use App\Filament\Resources\DoctorResource\Pages;
 use App\Filament\Resources\DoctorResource\RelationManagers;
 use App\Models\Doctor;
 use App\Models\Specialization;
+use Illuminate\Support\Facades\Hash;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -17,10 +18,8 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\FileUpload;
-use Filament\Tables\Actions\DeleteAction;
+use Filament\Notifications\Notification;
 
 class DoctorResource extends Resource
 {
@@ -56,6 +55,7 @@ class DoctorResource extends Resource
                             ->label('البريد الإلكتروني')
                             ->email()
                             ->required()
+                            ->unique(ignoreRecord: true)
                             ->columnSpan(1),
                             
                         FileUpload::make('image')
@@ -68,61 +68,101 @@ class DoctorResource extends Resource
                             
                         TextInput::make('practice')
                             ->label('سنوات الخبرة')
+                            ->numeric()
                             ->columnSpan(1),
                             
                         MarkdownEditor::make('about_doctor')
                             ->label('السيرة الذاتية')
                             ->required()
-                            ->columnSpanFull()
+                            ->columnSpanFull(),
+
+                        // حقل كلمة السر للإنشاء
+                        TextInput::make('password')
+                            ->label('كلمة السر')
+                            ->password()
+                            ->revealable()
+                            ->required()
+                            ->visibleOn('create')
+                            ->columnSpan(1)
+                            ->helperText('أدخل كلمة السر المطلوبة'),
+                            
+                        // حقل كلمة السر للتعديل
+                        TextInput::make('password')
+                            ->label('كلمة السر الجديدة')
+                            ->password()
+                            ->revealable()
+                            ->visibleOn('edit')
+                            ->columnSpan(1)
+                            ->helperText('أدخل كلمة السر الجديدة')
                     ])
                     ->columns(2)
             ]);
     }
 
+    public static function afterSave($record, $data): void
+    {
+        // لا حاجة لتشفير خاص - ستكون كلمة السر كما أدخلتها
+    }
+
     public static function table(Table $table): Table
     {
         return $table
-        //هون بحط الشي يلي لازم يظهر بعد اضافةة الطبيب يعني هوم العرض بالجداول
             ->columns([
                 ImageColumn::make('image')
-                ->disk('public') // تأكد من مطابقة القرص
-                ->width(80)
-                ->height(90)
-                ->extraImgAttributes([
-                    'class' => 'rounded-full object-cover', // Tailwind classes
-                ]),
+                    ->disk('public')
+                    ->width(80)
+                    ->height(90)
+                    ->extraImgAttributes([
+                        'class' => 'rounded-full object-cover',
+                    ]),
+                    
                 TextColumn::make('name'),
-                TextColumn::make('specialization.type')->label('Specializations'),
+                TextColumn::make('specialization.type')->label('الاختصاص'),
                 TextColumn::make('email'),
-                TextColumn::make('practice'),
-                TextColumn::make('about_doctor')->label('About Doctor'),
-               
+                TextColumn::make('practice')->label('سنوات الخبرة'),
+                
+                TextColumn::make('password')
+    ->label('كلمة السر')
+    ->state(function ($record) {
+        return $record->password ? '*****' : 'غير معين';
+    })
+    ->tooltip('انقر لإظهار كلمة السر')
+    ->extraAttributes(['class' => 'cursor-pointer'])
+    ->action( // استخدم action() بدلاً من actions()
+        Tables\Actions\Action::make('showPassword')
+            ->label('إظهار')
+            ->action(function ($record) {
+                Notification::make()
+                    ->title('كلمة السر')
+                    ->body("كلمة السر: {$record->password}")
+                    ->success()
+                    ->persistent()
+                    ->send();
+            })
+    ),
+                    
+                TextColumn::make('about_doctor')->label('السيرة الذاتية'),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('specialization_id')
+                    ->label('الاختصاص')
+                    ->relationship('specialization', 'type')
             ])
             ->actions([
+                Tables\Actions\EditAction::make()->label('تعديل'),
                 
-                Tables\Actions\EditAction::make()
-                ->label('تعديل'),
+                // إزالة زر إعادة التعيين العشوائي
                 
-                
-            //   Tables\Actions\DeleteAction::make()
-            //     ->label('حذف')
-            //     ->requiresConfirmation(),
-    
-
                 Tables\Actions\Action::make('patients')
-                ->label('المرضى')
-                ->icon('heroicon-o-user-group') // أيقونة المرضى
-                ->color('gray') // لون أخضر
-                ->button() // عرض كزر بدلاً من الرابط
-                ->url(fn ($record) => DoctorResource::getUrl('view', [
-                   'record' => $record->id,
-                   'activeRelationManager' => 'patients'
-                  ])),
-                
-              ])
+                    ->label('المرضى')
+                    ->icon('heroicon-o-user-group')
+                    ->color('gray')
+                    ->button()
+                    ->url(fn ($record) => DoctorResource::getUrl('view', [
+                        'record' => $record->id,
+                        'activeRelationManager' => 'patients'
+                    ])),
+            ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
@@ -135,7 +175,6 @@ class DoctorResource extends Resource
         return [
             RelationManagers\PatientsRelationManager::class,
         ];
-       
     }
 
     public static function getPages(): array

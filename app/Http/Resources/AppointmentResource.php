@@ -19,7 +19,9 @@ class AppointmentResource extends JsonResource
             'patient' => $this->patient->name,
             'date' => $this->appointment_date->format('Y-m-d H:i'),
             'status' => $this->status,
-            'notes' => $this->notes
+            'notes' => $this->notes,
+            'type' => $this->subSpecialization->name,
+            'duration' => $this->duration
         ];
     }
 }
