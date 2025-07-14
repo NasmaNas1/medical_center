@@ -7,6 +7,7 @@ use App\Filament\Resources\SpecializationResource\RelationManagers;
 use App\Models\Specialization;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Tables\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
@@ -22,7 +23,7 @@ class SpecializationResource extends Resource
 {
     protected static ?string $model = Specialization::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-academic-cap';
 
     public static function form(Form $form): Form
     {
@@ -51,6 +52,7 @@ class SpecializationResource extends Resource
     {
         return $table
         ->columns([
+
             TextColumn::make('type')
                 ->label('نوع التخصص')
                 ->searchable()
@@ -59,6 +61,7 @@ class SpecializationResource extends Resource
             TextColumn::make('created_at')
                 ->label('تاريخ الإضافة')
                 ->dateTime('d/M/Y')
+
         ])
         ->filters([
             // يمكن إضافة فلترات هنا
@@ -68,6 +71,13 @@ class SpecializationResource extends Resource
                 ->label('تعديل'),
             Tables\Actions\DeleteAction::make()
                 ->label('حذف'),
+           Action::make('أنواع الحجز')
+            ->url(fn ($record) => route('filament.admin.resources.sub-specializations.index', [
+             'tableFilters[specialization_id][value]' => $record->id
+              ]))
+            ->label('أنواع الحجز')
+             ->icon('heroicon-o-link'),
+
         ])
         ->bulkActions([
             Tables\Actions\BulkActionGroup::make([

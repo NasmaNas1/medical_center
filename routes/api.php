@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\RegisterController;
 use App\Http\Controllers\Api\PatientController;
 use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\SpecializationController;
+use App\Http\Controllers\Api\SubSpecializationController;
 use App\Http\Controllers\Api\DoctorController;
 use App\Http\Controllers\Api\OpinionController;
 use App\Models\Doctor;
@@ -58,3 +59,4 @@ Route::middleware(['auth:sanctum', 'doctor'])->group(function () {
 
 
 Route::get('/patients/{patient_uuid}/reports', [ReportController::class, 'getPatientReports']);
+Route::get('/sub-specializations/by-specialization/{id}', [SubSpecializationController::class, 'getBySpecialization']);

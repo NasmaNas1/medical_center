@@ -24,10 +24,10 @@ use Filament\Notifications\Notification;
 class DoctorResource extends Resource
 {
     protected static ?string $model = Doctor::class;
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-user-circle';
     protected static ?string $modelLabel = 'Doctor';
     protected static ?string $pluralModelLabel = 'Doctors';
-    protected static ?string $navigationLabel = 'القائمة الطبية';
+    protected static ?string $navigationLabel = 'Doctors';
     
     public static function form(Form $form): Form
     {

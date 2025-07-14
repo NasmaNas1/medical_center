@@ -11,4 +11,11 @@ class Specialization extends Model
     protected $fillable = [
         'type',
     ];
+
+
+    public function subSpecializations()
+{
+    return $this->hasMany(\App\Models\SubSpecialization::class);
+}
+
 }

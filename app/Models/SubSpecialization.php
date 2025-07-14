@@ -22,7 +22,7 @@ class SubSpecialization extends Model
     return $this->belongsTo(Specialization::class);
   }
 
-public function appointments()
+  public function appointments()
   {
     return $this->hasMany(Appointment::class);
   }
