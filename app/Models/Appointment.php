@@ -35,7 +35,7 @@ public function patient()
     return $this->belongsTo(Patient::class, 'patient_id', 'uuid');
 }
 
-public function service()
+public function subSpecialization()
 {
     return $this->belongsTo(SubSpecialization::class, 'sub_specialization_id');
 }

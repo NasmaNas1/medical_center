@@ -16,12 +16,12 @@ class AppointmentResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'patient' => $this->patient->name,
             'date' => $this->appointment_date->format('Y-m-d H:i'),
             'status' => $this->status,
-            'notes' => $this->notes,
-            'type' => $this->subSpecialization->name,
-            'duration' => $this->duration
+            'duration' => $this->duration,
+            'patient' => new PatientResource($this->whenLoaded('patient')),
+            'sub_specialization' => new SubSpecializationResource($this->whenLoaded('subSpecialization')),
+            
         ];
     }
 }

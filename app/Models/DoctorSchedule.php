@@ -13,9 +13,10 @@ class DoctorSchedule extends Model
    use HasFactory ,  HasApiTokens;
    
     protected $fillable = [
-        'date',
+        'day',
         'doctor_id',
         'start_time',
+        'sub_specialization_id',
         'end_time',
         'is_available',
     ];
@@ -29,4 +30,9 @@ public function appointments()
 {
     return $this->hasMany(Appointment::class);
 }
+
+protected $casts = [
+       
+        'day' => 'string'
+    ];
 }
