@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
-            $table->uuid('patient_id');
+            $table->unsignedBigInteger('patient_id');
             $table->unsignedBigInteger('doctor_id');
             $table->text('content');
             $table->timestamps();
 
             $table->foreign('patient_id')
-            ->references('uuid')
+            ->references('id')
             ->on('patients')
             ->onDelete('cascade');
 

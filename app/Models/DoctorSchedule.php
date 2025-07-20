@@ -31,6 +31,11 @@ public function appointments()
     return $this->hasMany(Appointment::class);
 }
 
+public function subSpecialization()
+    {
+        return $this->belongsTo(SubSpecialization::class, 'sub_specialization_id');
+    }
+
 protected $casts = [
        
         'day' => 'string'

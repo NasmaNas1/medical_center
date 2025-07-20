@@ -11,15 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Schema::create('doctors', function (Blueprint $table) {
-        //     $table->id();
-        //     $table->string('name');
-        //     $table->string('image')->nullable();
-        //     $table->foreignId('specialization_id')->references('id')->on('specializations')->onDelete('cascade');
-        //     $table->string('email');
-        //     $table->text('about_doctor');
-        //     $table->timestamps();
-        // });
+        Schema::create('doctors', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('image')->nullable();
+            $table->foreignId('specialization_id')->references('id')->on('specializations')->onDelete('cascade');
+            $table->string('email');
+            $table->text('about_doctor');
+            $table->timestamps();
+        });
     }
 
     /**

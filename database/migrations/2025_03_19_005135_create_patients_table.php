@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('patients', function (Blueprint $table) {
-            $table->uuid('uuid')->primary(); // استخدام UUID كمفتاح أساسي
+            $table->id(); 
             $table->string('name');
             $table->string('email')->unique();
             $table->string('password');

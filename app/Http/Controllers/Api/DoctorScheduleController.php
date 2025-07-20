@@ -33,6 +33,8 @@ class DoctorScheduleController extends Controller
         'end_time' => $validated['end_time'],
         'is_available' => true,
     ]);
+    
+       $schedule->load('subSpecialization');
 
     return $this->responseWithJson(
         new DoctorScheduleResource($schedule),

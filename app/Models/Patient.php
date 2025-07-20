@@ -18,10 +18,7 @@ class Patient extends Authenticatable
 {
 
     use HasFactory , HasApiTokens , Notifiable;
-    protected $primaryKey = 'uuid';
-    public $incrementing = false;
-    protected $keyType = 'string';
-    
+ 
     protected $fillable = [
         'uuid',
         'name',
@@ -50,14 +47,14 @@ class Patient extends Authenticatable
         'updated_at',
     ];
 
-    protected static function boot()
-    {
-        parent::boot();
+    // protected static function boot()
+    // {
+    //     parent::boot();
 
-        static::creating(function ($patient) {
-            $patient->uuid = (string) Str::uuid(); // توليد UUID عند الإنشاء
-        });
-    }
+    //     static::creating(function ($patient) {
+    //         $patient->uuid = (string) Str::uuid(); // توليد UUID عند الإنشاء
+    //     });
+    // }
 
     public function Doctors(){
         return $this->belongsToMany(Doctor::class, 'doctor_patient', 'patient_id', 'doctor_id');

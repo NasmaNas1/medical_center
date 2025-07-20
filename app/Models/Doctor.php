@@ -11,8 +11,9 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash; 
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Doctor extends Model
+class Doctor extends Authenticatable
 {
     use HasFactory ,  HasApiTokens , Notifiable;
    
