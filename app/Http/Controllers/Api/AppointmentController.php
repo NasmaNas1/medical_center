@@ -154,7 +154,7 @@ public function getAppointmentsByStatus($doctorId, $status)
     {
         $validator = Validator::make($request->all(), [
             'doctor_id' => 'required|exists:doctors,id',
-            'patient_id' => 'required|exists:patients,uuid',
+            'patient_id' => 'required|exists:patients,id',
             'sub_specialization_id' => 'required|exists:sub_specializations,id',
             'appointment_date' => 'required|date_format:Y-m-d H:i|after_or_equal:now',
             'notes' => 'nullable|string|max:500',

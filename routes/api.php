@@ -48,7 +48,7 @@ Route::get('/doctors/by-specialization/{specialization_id}', [DoctorController::
 Route::get('/showOpinions', [OpinionController::class, 'show']);
 
 // تقارير المرضى
-Route::get('/patients/{patient_uuid}/reports', [ReportController::class, 'getPatientReports']);
+Route::get('/patients/{patient_id}/reports', [ReportController::class, 'getPatientReports']);
 
 Route::middleware(['auth:sanctum', 'patient'])->group(function () {
     Route::post('/logout', [LoginController::class, 'logout']);

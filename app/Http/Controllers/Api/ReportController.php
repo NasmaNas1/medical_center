@@ -22,7 +22,7 @@ class ReportController extends Controller
     {
         // التحقق من صحة البيانات
         $validator = Validator::make($request->all(), [
-            'patient_id' => 'required|uuid|exists:patients,uuid',
+            'patient_id' => 'required|exists:patients,id',
             'content' => 'required|string|min:10'
         ]);
 
@@ -65,17 +65,17 @@ class ReportController extends Controller
     /**
      * الحصول على جميع تقارير مريض معين
      */
-    public function getPatientReports($patient_uuid)
+    public function getPatientReports($patient_id)
     {
         // التحقق من وجود المريض
-        if (!Patient::where('uuid', $patient_uuid)->exists()) {
+        if (!Patient::where('id', $patient_id)->exists()) {
             return $this->notFoundResponse('المريض غير موجود');
         }
 
         try {
             // الحصول على التقارير مع تحميل علاقة الطبيب
             $reports = Report::with('doctor')
-                ->where('patient_id', $patient_uuid)
+                ->where('patient_id', $patient_id)
                 ->orderBy('created_at', 'desc')
                 ->get();
 
