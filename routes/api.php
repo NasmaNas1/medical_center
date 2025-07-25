@@ -54,7 +54,7 @@ Route::middleware(['auth:sanctum', 'patient'])->group(function () {
     Route::post('/logout', [LoginController::class, 'logout']);
     Route::get('/patient/{id}', [PatientController::class, 'index']);
     Route::post('/patient/update/{id}', [PatientController::class, 'update']);
-    // تم
+    Route::get('/patients/{id}/appointments', [PatientController::class, 'appointments']);
     Route::post('/appointments/book', [AppointmentController::class, 'bookAppointment']);
     Route::post('/opinions',[OpinionController::class,'opinion']);
 });
@@ -62,14 +62,10 @@ Route::middleware(['auth:sanctum', 'patient'])->group(function () {
 
 Route::middleware(['auth:sanctum', 'doctor'])->group(function () {
     Route::post('/reports', [ReportController::class, 'store']);
-    // jl
     Route::get('appointments/weekly/{doctorId}',[AppointmentController::class,'getWeeklyAppointments']);
-    // 
     Route::get('/doctors/{id}/appointments/status/{status}', [AppointmentController::class, 'getAppointmentsByStatus']);
     Route::get('/doctors/{id}/appointments/patients-count', [AppointmentController::class, 'getPatientsCountByStatus']);
-    // jl
     Route::get('/doctors/{id}/availableSlots/{subSpecializationId}', [AppointmentController::class, 'getAvailableSlots']);
-    // 
     Route::post('/doctor-schedules', [DoctorScheduleController::class, 'store']);
     
     Route::put('/doctor-schedules/{scheduleId}/availability', [DoctorScheduleController::class, 'updateAvailability']);

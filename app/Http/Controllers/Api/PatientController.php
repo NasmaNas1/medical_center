@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Patient;
 use App\Http\Resources\PatientResource;
+use App\Http\Resources\AppintmentPatientResource;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Traits\GeneralTrait;
+use App\Models\Appointment;
 use Illuminate\Support\Facades\Validator;
 
 class PatientController extends Controller
@@ -93,4 +95,21 @@ class PatientController extends Controller
         }
     }
 
+    public function appointments($id){
+      try{  $patient=Patient::findOrFail($id);
+        $appointments = $patient->appointments()->with(['doctor', 'subSpecialization'])->get();
+         
+         return   $this->responseWithJson(
+             AppintmentPatientResource::collection($appointments ),  
+            true
+        );
+    }catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        return $this->responseWithJson(
+            null,
+            false,
+            ['message' => 'المريض غير موجود'],
+            404
+        );
+    }
+}
 }
