@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Specialization;
 use App\Models\Patient;
+use App\Models\Rating;
 use App\Models\Appointment;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash; 
@@ -54,6 +55,19 @@ class Doctor extends Authenticatable
     {
         $this->attributes['password'] = Hash::make($value);
     }
+    public function ratings()
+   {
+    return $this->hasManyThrough(
+        Rating::class,
+        Appointment::class,
+        'doctor_id',        // FK in appointments table
+        'appointment_id',    // FK in appointment_ratings table
+        'id',               // Local key in doctors table
+        'id'                // Local key in appointments table
+    );
+
+   }
+
   protected $hidden = [
     'password', 
     'remember_token',

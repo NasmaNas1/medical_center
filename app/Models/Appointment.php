@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Patient;
 use App\Models\Doctor;
+use App\Models\Rating;
 use App\Models\Notification;
 use App\Models\SubSpecialization;
 use App\Models\DoctorSchedule;
@@ -25,6 +26,12 @@ class Appointment extends Model
         'schedule_id',
         
     ];
+
+public function rating()
+{
+    return $this->hasOne(Rating::class);
+}
+
     public function doctor()
 {
     return $this->belongsTo(Doctor::class);

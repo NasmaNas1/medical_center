@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\SubSpecialization;
 
 class Specialization extends Model
 {
@@ -15,7 +16,7 @@ class Specialization extends Model
 
     public function subSpecializations()
 {
-    return $this->hasMany(\App\Models\SubSpecialization::class);
+    return $this->hasMany(SubSpecialization::class);
 }
 
 }

@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\SpecializationController;
 use App\Http\Controllers\Api\SubSpecializationController;
 use App\Http\Controllers\Api\DoctorController;
 use App\Http\Controllers\Api\OpinionController;
+use App\Http\Controllers\Api\RatingController;
 use App\Models\Doctor;
 use App\Http\Controllers\Api\DoctorScheduleController;
 use App\Http\Controllers\Api\ReportController;
@@ -57,8 +58,11 @@ Route::middleware(['auth:sanctum', 'patient'])->group(function () {
     Route::get('/patients/{id}/appointments', [PatientController::class, 'appointments']);
     Route::post('/appointments/book', [AppointmentController::class, 'bookAppointment']);
     Route::post('/opinions',[OpinionController::class,'opinion']);
-});
+    Route::post('/appointments/{appointment}/rate', [RatingController::class, 'rateAppointment']);
+    
 
+});
+ Route::get('/doctors/{doctor}/average-rating', [RatingController::class, 'getDoctorAverageRating']);
 
 Route::middleware(['auth:sanctum', 'doctor'])->group(function () {
     Route::post('/reports', [ReportController::class, 'store']);

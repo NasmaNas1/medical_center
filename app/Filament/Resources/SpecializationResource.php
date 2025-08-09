@@ -22,8 +22,9 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class SpecializationResource extends Resource
 {
     protected static ?string $model = Specialization::class;
-
+    protected static ?string $navigationGroup = 'Specialization';
     protected static ?string $navigationIcon = 'heroicon-o-academic-cap';
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {

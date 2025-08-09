@@ -26,8 +26,9 @@ use Filament\Forms\Components\DatePicker;
 class AppointmentResource extends Resource
 {
     protected static ?string $model = Appointment::class;
-
+    protected static ?string $navigationGroup = 'Appointment';
     protected static ?string $navigationIcon = 'heroicon-o-calendar';
+    protected static ?int $navigationSort = 5;
 
     public static function form(Form $form): Form
     {

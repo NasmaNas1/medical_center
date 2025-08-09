@@ -16,10 +16,13 @@ use Filament\Forms\Components\TextInput;
 use Filament\Tables\Filters\SelectFilter;
 
 class SubSpecializationResource extends Resource
-{
+{   
     protected static ?string $model = SubSpecialization::class;
-
+    
+    protected static ?string $navigationGroup = 'Specialization';
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
+   protected static ?int $navigationSort = 4;
+
 
     public static function form(Form $form): Form
     {

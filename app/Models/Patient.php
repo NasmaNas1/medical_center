@@ -55,6 +55,12 @@ class Patient extends Authenticatable
     //         $patient->uuid = (string) Str::uuid(); // توليد UUID عند الإنشاء
     //     });
     // }
+    public function ratedDoctors()
+    {
+    return $this->belongsToMany(Doctor::class, 'doctor_patient_ratings')
+        ->withPivot('rating')
+        ->withTimestamps();
+    }
 
     public function Doctors(){
         return $this->belongsToMany(Doctor::class, 'doctor_patient', 'patient_id', 'doctor_id');
