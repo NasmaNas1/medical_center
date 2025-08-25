@@ -16,7 +16,7 @@ class SubSpecializationResource extends JsonResource
     {
          return [
             'id'=>$this->id,
-            'specialization_id' => $this->specialization_id,
+            'specialization_id' =>$this->specialization_id,
             'specialization' => $this->specialization->type,
             'name'=>$this->name,
             'duration'=>$this->duration,

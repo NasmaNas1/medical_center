@@ -16,7 +16,7 @@ class SpecializationController extends Controller
         try {
             $specializations = Specialization::all();
             
-            // استخدام الـ Resource إذا كان موجوداً
+            
             $data = class_exists(SpecializationResource::class) 
                     ? SpecializationResource::collection($specializations)
                     : $specializations;
