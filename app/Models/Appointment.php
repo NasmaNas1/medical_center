@@ -39,7 +39,7 @@ public function rating()
 
 public function patient()
 {
-    return $this->belongsTo(Patient::class, 'patient_id', 'uuid');
+    return $this->belongsTo(Patient::class, 'patient_id', 'id');
 }
 
 public function subSpecialization()

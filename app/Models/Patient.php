@@ -20,7 +20,7 @@ class Patient extends Authenticatable
     use HasFactory , HasApiTokens , Notifiable;
  
     protected $fillable = [
-        'uuid',
+    
         'name',
         'email',
         'password',
@@ -47,14 +47,7 @@ class Patient extends Authenticatable
         'updated_at',
     ];
 
-    // protected static function boot()
-    // {
-    //     parent::boot();
-
-    //     static::creating(function ($patient) {
-    //         $patient->uuid = (string) Str::uuid(); // توليد UUID عند الإنشاء
-    //     });
-    // }
+  
     public function ratedDoctors()
     {
     return $this->belongsToMany(Doctor::class, 'doctor_patient_ratings')
