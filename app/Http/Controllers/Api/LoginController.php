@@ -73,15 +73,19 @@ if ($request->user_type === 'patient') {
             );    }
 
     public function logout(Request $request)
-    {
-        
-
-        if (!$request->user()) {
-            return $this->responseWithJson(null, false, 'المستخدم غير مصادق عليه', 401);
-        }
-    
-        $request->user()->currentAccessToken()->delete();
-        return $this->responseWithJson(null, true, 'تم تسجيل الخروج بنجاح', 200);
-
+{
+    // التحقق من وجود مستخدم مصادق عليه
+    if (!$request->user()) {
+        return $this->responseWithJson(null, false, 'المستخدم غير مصادق عليه', 401);
     }
+    
+    try {
+        // حذف token المصادقة الحالي
+        $request->user()->currentAccessToken()->delete();
+        
+        return $this->responseWithJson(null, true, 'تم تسجيل الخروج بنجاح', 200);
+    } catch (\Exception $e) {
+        return $this->responseWithJson(null, false, 'حدث خطأ أثناء تسجيل الخروج: ' . $e->getMessage(), 500);
+    }
+}
 }

@@ -65,6 +65,7 @@ Route::middleware(['auth:sanctum', 'patient'])->group(function () {
  Route::get('/doctors/{doctor}/average-rating', [RatingController::class, 'getDoctorAverageRating']);
 
 Route::middleware(['auth:sanctum', 'doctor'])->group(function () {
+    Route::post('/logout', [LoginController::class, 'logout']);
     Route::post('/reports', [ReportController::class, 'store']);
     Route::get('appointments/weekly/{doctorId}',[AppointmentController::class,'getWeeklyAppointments']);
     Route::get('/doctors/{id}/appointments/status/{status}', [AppointmentController::class, 'getAppointmentsByStatus']);
