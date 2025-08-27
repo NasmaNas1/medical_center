@@ -7,22 +7,18 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class DoctorScheduleResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
-       return [
+        return [
             'id' => $this->id,
             'doctor_id' => $this->doctor_id,
-            'sub_specialization_id'=>$this->subSpecialization?? null,
-            'duration' => $this->subSpecialization->duration ?? null,'day' => $this->day,
+            'sub_specialization_id' => $this->sub_specialization_id,
+            'sub_specialization' => $this->subSpecialization, // تم التصحيح هنا
+            'duration' => $this->subSpecialization->duration ?? null, // تم التصحيح هنا
+            'day' => $this->day,
             'start_time' => $this->start_time,
             'end_time' => $this->end_time,
             'is_available' => $this->is_available,
-          
         ];
     }
 }
