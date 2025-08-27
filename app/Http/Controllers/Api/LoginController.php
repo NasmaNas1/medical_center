@@ -74,13 +74,13 @@ if ($request->user_type === 'patient') {
 
     public function logout(Request $request)
 {
-    // التحقق من وجود مستخدم مصادق عليه
+    
     if (!$request->user()) {
         return $this->responseWithJson(null, false, 'المستخدم غير مصادق عليه', 401);
     }
     
     try {
-        // حذف token المصادقة الحالي
+       
         $request->user()->currentAccessToken()->delete();
         
         return $this->responseWithJson(null, true, 'تم تسجيل الخروج بنجاح', 200);

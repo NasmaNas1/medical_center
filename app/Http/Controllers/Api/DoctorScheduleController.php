@@ -25,22 +25,26 @@ class DoctorScheduleController extends Controller
         'end_time' => 'required|date_format:H:i|after:start_time',
     ]);
 
-    $schedule = DoctorSchedule::create([
-        'doctor_id' => $validated['doctor_id'],
-        'sub_specialization_id' => $validated['sub_specialization_id'],
-        'day' => $validated['day'],
-        'start_time' => $validated['start_time'],
-        'end_time' => $validated['end_time'],
-        'is_available' => true,
-    ]);
-    
-       $schedule->load('subSpecialization');
+   try {
+        $schedule = DoctorSchedule::create([
+            'doctor_id' => $validated['doctor_id'],
+            'sub_specialization_id' => $validated['sub_specialization_id'],
+            'day' => $validated['day'],
+            'start_time' => $validated['start_time'],
+            'end_time' => $validated['end_time'],
+            'is_available' => true,
+        ]);
 
-    return $this->responseWithJson(
-        new DoctorScheduleResource($schedule),
-        true,
-        'تم إضافة الجدول بنجاح'
-    );
+        $schedule->load('subSpecialization');
+
+        return $this->responseWithJson(
+            new DoctorScheduleResource($schedule),
+            true,
+            'تم إضافة الجدول بنجاح'
+        );
+    } catch (\Exception $e) {
+        return $this->responseWithJson(null, false, 'حدث خطأ أثناء إضافة الجدول: ' . $e->getMessage(), 500);
+    }
 }
 
 
