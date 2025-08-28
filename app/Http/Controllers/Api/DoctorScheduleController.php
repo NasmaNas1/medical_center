@@ -48,29 +48,31 @@ class DoctorScheduleController extends Controller
 }
 
 
-    // تحديث حالة التوفر (is_available) لجدول الطبيب
-    public function updateAvailability(Request $request, $scheduleId)
-    {
-        $validator = Validator::make($request->all(), [
-            'is_available' => 'required|boolean',
-        ]);
+  
 
-        if ($validator->fails()) {
-            return $this->responseWithJson(null, false, $validator->errors()->first(), 400);
-        }
 
-        $schedule = DoctorSchedule::find($scheduleId);
-
-        if (!$schedule) {
-            return $this->responseWithJson(null, false, 'جدول الطبيب غير موجود', 404);
-        }
-
-        $schedule->is_available = $request->input('is_available');
-        $schedule->save();
-
-            return $this->responseWithJson(new DoctorScheduleResource($schedule), true, 'تم تحديث التوفر بنجاح');
-
+   // جلب الأوقات المتاحة لطبيب معيّن
+public function getAvailableSchedules($doctorId)
+{
+    $doctor = Doctor::find($doctorId);
+    if (!$doctor) {
+        return $this->responseWithJson(null, false, 'الطبيب غير موجود', 404);
     }
+
+    $schedules = DoctorSchedule::where('doctor_id', $doctorId)
+        ->where('is_available', true)
+        ->with('subSpecialization')
+        ->orderByRaw("FIELD(day, 'Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday')")
+        ->orderBy('start_time', 'asc')
+        ->get();
+
+    return $this->responseWithJson(
+        DoctorScheduleResource::collection($schedules),
+        true,
+        'الأوقات المتاحة للطبيب'
+    );
+}
+ 
 
     public function getUnavailableDaysCount($doctorId)
 {
@@ -85,5 +87,55 @@ class DoctorScheduleController extends Controller
 
     return $this->responseWithJson(['unavailable_days_count' => $count], true, 'عدد أيام العطلات');
 }
+public function updateSchedule(Request $request, $scheduleId)
+{
+    $validated = $request->validate([
+        'day' => 'sometimes|in:Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday',
+        'start_time' => 'sometimes|date_format:H:i',
+        'end_time' => 'sometimes|date_format:H:i|after:start_time',
+        'is_available' => 'sometimes|boolean',
+    ]);
+
+    $schedule = DoctorSchedule::find($scheduleId);
+
+    if (!$schedule) {
+        return $this->responseWithJson(null, false, 'جدول الطبيب غير موجود', 404);
+    }
+
+    // تحقق من اليوم الحالي واليوم المطلوب تعديله
+    $today = now()->format('l'); // اليوم الحالي
+    $tomorrow = now()->addDay()->format('l'); // بكرا
+
+    if (
+        (isset($validated['day']) && ($validated['day'] === $today || $validated['day'] === $tomorrow)) ||
+        ($schedule->day === $today || $schedule->day === $tomorrow)
+    ) {
+        return $this->responseWithJson(null, false, 'لا يمكنك تعديل جدول اليوم أو الغد', 400);
+    }
+
+    // تحديث الحقول
+    if (isset($validated['day'])) {
+        $schedule->day = $validated['day'];
+    }
+    if (isset($validated['start_time'])) {
+        $schedule->start_time = $validated['start_time'];
+    }
+    if (isset($validated['end_time'])) {
+        $schedule->end_time = $validated['end_time'];
+    }
+    if (isset($validated['is_available'])) {
+        $schedule->is_available = $validated['is_available'];
+    }
+
+    $schedule->save();
+    $schedule->load('subSpecialization');
+
+    return $this->responseWithJson(
+        new DoctorScheduleResource($schedule),
+        true,
+        'تم تعديل الجدول بنجاح'
+    );
+}
+
 
 }

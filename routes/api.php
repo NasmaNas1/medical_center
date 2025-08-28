@@ -58,6 +58,7 @@ Route::middleware(['auth:sanctum', 'patient'])->group(function () {
     Route::get('/patients/{id}/appointments', [PatientController::class, 'appointments']);
     Route::post('/appointments/book', [AppointmentController::class, 'bookAppointment']);
     Route::post('/opinions',[OpinionController::class,'opinion']);
+    Route::get('/doctors/{doctorId}/subSpecializations/{subSpecializationId}/availableSlots', [AppointmentController::class, 'getAvailableSlots']);
     Route::post('/appointments/{appointment}/rate', [RatingController::class, 'rateAppointment']);
     
 
@@ -70,11 +71,9 @@ Route::middleware(['auth:sanctum', 'doctor'])->group(function () {
     Route::get('appointments/weekly/{doctorId}',[AppointmentController::class,'getWeeklyAppointments']);
     Route::get('/doctors/{id}/appointments/status/{status}', [AppointmentController::class, 'getAppointmentsByStatus']);
     Route::get('/doctors/{id}/appointments/patients-count', [AppointmentController::class, 'getPatientsCountByStatus']);
-    Route::get('/doctors/{id}/availableSlots/{subSpecializationId}', [AppointmentController::class, 'getAvailableSlots']);
-    Route::post('/doctor-schedules', [DoctorScheduleController::class, 'store']);
-    
-    Route::put('/doctor-schedules/{scheduleId}/availability', [DoctorScheduleController::class, 'updateAvailability']);
-    
-});
 
+    Route::post('/doctor-schedules', [DoctorScheduleController::class, 'store']);
+    Route::post('/doctor-schedules/{scheduleId}/update', [DoctorScheduleController::class, 'updateSchedule']);
+    Route::get('/doctors/{doctorId}/schedules/available', [DoctorScheduleController::class, 'getAvailableSchedules']);
+});
 
