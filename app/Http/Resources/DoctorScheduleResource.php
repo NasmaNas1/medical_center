@@ -14,7 +14,7 @@ class DoctorScheduleResource extends JsonResource
             'doctor_id' => $this->doctor_id,
             'sub_specialization_id' => $this->sub_specialization_id,
             'sub_specialization' => $this->subSpecialization, 
-            'duration' => $this->subSpecialization->duration ?? null, 
+            'duration' => $this->subSpecialization->duration, 
             'day' => $this->day,
             'start_time' => $this->start_time,
             'end_time' => $this->end_time,
