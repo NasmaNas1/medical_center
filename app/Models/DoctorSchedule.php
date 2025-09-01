@@ -10,7 +10,7 @@ use App\Models\Appointment;
 
 class DoctorSchedule extends Model
 {
-   use HasFactory ,  HasApiTokens;
+   use HasFactory ;
    
     protected $fillable = [
         'day',

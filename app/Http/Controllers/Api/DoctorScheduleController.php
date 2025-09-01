@@ -16,9 +16,14 @@ class DoctorScheduleController extends Controller
 
 
     public function store(Request $request)
-{
+{   
+    $doctor = $request->user(); 
+
+    if (!$doctor instanceof Doctor) {
+        return $this->responseWithJson(null, false, 'غير مصرح. هذا الإجراء للأطباء فقط.', 403);
+    }
     $validated = $request->validate([
-        'doctor_id' => 'required|exists:doctors,id',
+        // 'doctor_id' => 'required|exists:doctors,id',
         'sub_specialization_id' => 'required|exists:sub_specializations,id',
         'day' => 'required|in:Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday',
         'start_time' => 'required|date_format:H:i',
@@ -27,7 +32,7 @@ class DoctorScheduleController extends Controller
 
    try {
         $schedule = DoctorSchedule::create([
-            'doctor_id' => $validated['doctor_id'],
+            'doctor_id' =>$doctor->id,
             'sub_specialization_id' => $validated['sub_specialization_id'],
             'day' => $validated['day'],
             'start_time' => $validated['start_time'],
