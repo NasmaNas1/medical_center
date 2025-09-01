@@ -16,7 +16,7 @@ class AppointmentResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'date' => $this->appointment_date->format('Y-m-d H:i'),
+            'date' => $this->appointment_date->format('d-m-Y H:i'),
             'status' => $this->status,
             'duration' => $this->duration,
             'patient' => new PatientResource($this->whenLoaded('patient')),

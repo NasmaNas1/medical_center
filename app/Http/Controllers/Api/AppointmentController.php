@@ -86,69 +86,90 @@ public function getAppointmentsByStatus($doctorId, $status)
 
 
     // المواعيد المتاحة
-    public function getAvailableSlots(Request $request, $doctorId, $subSpecializationId)
-    {
-        $request->validate([
-            'date' => 'required|date_format:Y-m-d',
-        ]);
+public function getAvailableSlots(Request $request, $doctorId, $subSpecializationId)
+{
+    // التحقق من الطبيب ونوع الحجز
+    $doctor = Doctor::findOrFail($doctorId);
+    $sub = SubSpecialization::findOrFail($subSpecializationId);
+    $duration = (int) $sub->duration;
 
-        $date = $request->input('date');
+    // نطاق الأسبوع: 7 أيام بدءاً من اليوم
+    $startDate = now()->startOfDay();
+    $endDate   = now()->copy()->addDays(6)->endOfDay();
+    $now       = now();
 
-        // التحقق من عدم تجاوز 7 أيام
-        if (Carbon::parse($date)->gt(now()->addDays(7)->endOfDay())) {
-            return $this->responseWithJson(null, false, 'لا يمكن الحجز لأكثر من 7 أيام قادمة', 400);
-        }
+    // جداول الطبيب لهالنوع مجمعة حسب اليوم
+    $schedulesByDay = DoctorSchedule::where('doctor_id', $doctorId)
+        ->where('is_available', true)
+        ->where('sub_specialization_id', $subSpecializationId)
+        ->orderBy('start_time')
+        ->get()
+        ->groupBy('day'); // Sunday .. Saturday
 
-        $specialization = SubSpecialization::findOrFail($subSpecializationId);
-        $duration = $specialization->duration;
-        $dayOfWeek = Carbon::parse($date)->format('l');
+    // المواعيد المحجوزة ضمن الأسبوع (لا ترجع الملغاة)
+    $booked = Appointment::where('doctor_id', $doctorId)
+        ->whereBetween('appointment_date', [$startDate, $endDate])
+        ->where('status', '!=', 'cancelled')
+        ->pluck('appointment_date')
+        ->map(fn ($dt) => Carbon::parse($dt)->format('Y-m-d H:i:s'))
+        ->all();
+    $bookedSet = array_flip($booked);
 
-        $schedules = DoctorSchedule::where('doctor_id', $doctorId)
-            ->where('is_available', true)
-            ->where('day', $dayOfWeek)
-            ->where('sub_specialization_id', $subSpecializationId)
-            ->get();
+    $days = [];
+    for ($i = 0; $i < 7; $i++) {
+        $date     = now()->copy()->addDays($i);
+        $dateStr  = $date->format('Y-m-d');
+        $weekday  = $date->format('l');
 
-        $bookedAppointments = Appointment::where('doctor_id', $doctorId)
-            ->whereDate('appointment_date', $date)
-            ->where('status', '!=', 'cancelled')
-            ->pluck('appointment_date')
-            ->map(fn ($date) => Carbon::parse($date)->format('Y-m-d H:i:s'))
-            ->toArray();
+        $daySlots = [];
 
-        $slots = [];
-        $currentDateTime = now();
+        foreach ($schedulesByDay->get($weekday, collect()) as $schedule) {
+            $start = Carbon::parse("$dateStr {$schedule->start_time}");
+            $end   = Carbon::parse("$dateStr {$schedule->end_time}");
 
-        foreach ($schedules as $schedule) {
-            $start = Carbon::parse("$date {$schedule->start_time}");
-            $end = Carbon::parse("$date {$schedule->end_time}");
+            // تقسيم حسب المدة
+            for ($current = $start->copy(); $current->copy()->addMinutes($duration)->lte($end); $current->addMinutes($duration)) {
+                // استبعاد أي وقت ماضي نهائياً
+                if ($current->lt($now)) {
+                    continue;
+                }
 
-            $current = $start->copy();
+                $key = $current->format('d-m-Y H:i');
 
-            while ($current->copy()->addMinutes($duration) <= $end) {
-                $slotEnd = $current->copy()->addMinutes($duration);
-                $slotKey = $current->format('Y-m-d H:i:s');
+                // إذا محجوز نتجاوزه (ما نرجعه أبداً)
+                if (isset($bookedSet[$key])) {
+                    continue;
+                }
 
-                $slots[] = [
-                    'time' => $current->format('H:i'),
+                $daySlots[] = [
+                    'time'           => $current->format('H:i'),
                     'formatted_time' => $current->format('h:i A'),
-                    'timestamp' => $slotKey,
-                    'is_available' => !in_array($slotKey, $bookedAppointments) && !$current->lt($currentDateTime),
+                    'timestamp'      => $key,
+                    'is_available'   => true, // دائماً true لأننا استبعدنا المحجوز والماضي/
                 ];
-
-                $current->addMinutes($duration);
             }
         }
 
-        return $this->responseWithJson([
-            'data' => AppointmentSlotResource::collection($slots),
-            'duration' => $duration,
-            'date' => $date,
-            'doctor_id' => $doctorId,
-            'sub_specialization_id' => $subSpecializationId,
-        ]);
+        // نحول الـ slots لريسورس
+        $days[] = [
+            'date'    => $dateStr,
+            'weekday' => $weekday,
+            'slots'   => AppointmentSlotResource::collection(collect($daySlots)),
+        ];
     }
 
+    // اختياري: احذف الأيام اللي ما فيها أي slot
+    // $days = array_values(array_filter($days, fn ($d) => count($d['slots']) > 0));
+
+    return $this->responseWithJson([
+        'duration' => $duration,
+        'range' => [
+            'start' => $startDate->toDateString(),
+            'end'   => $endDate->toDateString(),
+        ],
+        'days' => $days,
+    ], true, 'الفترات المتاحة للأسبوع القادم');
+}
     // حجز موعد
     public function bookAppointment(Request $request)
     {
@@ -156,7 +177,7 @@ public function getAppointmentsByStatus($doctorId, $status)
             'doctor_id' => 'required|exists:doctors,id',
             'patient_id' => 'required|exists:patients,id',
             'sub_specialization_id' => 'required|exists:sub_specializations,id',
-            'appointment_date' => 'required|date_format:Y-m-d H:i|after_or_equal:now',
+            'appointment_date' => 'required|date_format:d-m-Y H:i|after_or_equal:now',
             'notes' => 'nullable|string|max:500',
         ], [
             'appointment_date.after_or_equal' => 'يجب أن يكون الموعد في وقت لاحق',
@@ -218,7 +239,7 @@ public function getAppointmentsByStatus($doctorId, $status)
     private function isSlotAvailable($doctorId, Carbon $dateTime)
     {
         $exists = Appointment::where('doctor_id', $doctorId)
-            ->where('appointment_date', $dateTime->format('Y-m-d H:i:00'))
+            ->where('appointment_date', $dateTime->format('d-m-Y H:i:00'))
             ->exists();
 
         $dayOfWeek = $dateTime->format('l');
