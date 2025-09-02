@@ -98,6 +98,7 @@ public function updateSchedule(Request $request, $scheduleId)
         'day' => 'sometimes|in:Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday',
         'start_time' => 'sometimes|date_format:H:i',
         'end_time' => 'sometimes|date_format:H:i|after:start_time',
+        'sub_specialization_id' => 'sometimes|exists:sub_specializations,id',
         'is_available' => 'sometimes|boolean',
     ]);
 
@@ -127,6 +128,9 @@ public function updateSchedule(Request $request, $scheduleId)
     }
     if (isset($validated['end_time'])) {
         $schedule->end_time = $validated['end_time'];
+    }
+     if (isset($validated['sub_specialization_id'])) {
+        $schedule->sub_specialization_id= $validated['sub_specialization_id'];
     }
     if (isset($validated['is_available'])) {
         $schedule->is_available = $validated['is_available'];
