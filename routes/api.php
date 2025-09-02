@@ -49,7 +49,7 @@ Route::get('/doctors/by-specialization/{specialization_id}', [DoctorController::
 Route::get('/showOpinions', [OpinionController::class, 'show']);
 
 // تقارير المرضى
-Route::get('/patients/{patient_id}/reports', [ReportController::class, 'getPatientReports']);
+
 
 Route::middleware(['auth:sanctum', 'patient'])->group(function () {
     Route::post('/logout', [LoginController::class, 'logout']);
@@ -60,6 +60,7 @@ Route::middleware(['auth:sanctum', 'patient'])->group(function () {
     Route::post('/opinions',[OpinionController::class,'opinion']);
     Route::get('/doctors/{doctorId}/subSpecializations/{subSpecializationId}/availableSlots', [AppointmentController::class, 'getAvailableSlots']);
     Route::post('/appointments/{appointment}/rate', [RatingController::class, 'rateAppointment']);
+    Route::get('/patients/{patient_id}/reports', [ReportController::class, 'getPatientReports']);
     
 
 });
