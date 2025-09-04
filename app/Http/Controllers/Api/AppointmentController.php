@@ -259,24 +259,29 @@ public function getAvailableSlots(Request $request, $doctorId, $subSpecializatio
     }
 
     // التحقق من توفر الوقت
-    private function isSlotAvailable($doctorId, Carbon $dateTime)
-    {
-        $exists = Appointment::where('doctor_id', $doctorId)
-            ->where('appointment_date', $dateTime->format('d-m-Y H:i:00'))
-            ->exists();
+private function isSlotAvailable($doctorId, Carbon $dateTime)
+{
+    // نخلي حدود المقارنة دقيقة وحدة (نطنش الثواني)
+    $slotStart = $dateTime->copy()->startOfMinute();
+    $slotEnd   = $dateTime->copy()->endOfMinute();
 
-        $dayOfWeek = $dateTime->format('l');
-        $time = $dateTime->format('H:i:s');
+    $exists = Appointment::where('doctor_id', $doctorId)
+        ->whereBetween('appointment_date', [$slotStart, $slotEnd])
+        ->exists();
 
-        $scheduleExists = DoctorSchedule::where('doctor_id', $doctorId)
-            ->where('day', $dayOfWeek)
-            ->where('start_time', '<=', $time)
-            ->where('end_time', '>=', $time)
-            ->where('is_available', true)
-            ->exists();
+    $dayOfWeek = $dateTime->format('l');
+    $time = $dateTime->format('H:i:s');
 
-        return !$exists && $scheduleExists;
-    }
+    $scheduleExists = DoctorSchedule::where('doctor_id', $doctorId)
+        ->where('day', $dayOfWeek)
+        ->where('start_time', '<=', $time)
+        ->where('end_time', '>=', $time)
+        ->where('is_available', true)
+        ->exists();
+
+    return !$exists && $scheduleExists;
+}
+
 
  public function markAttendance(Request $request, $appointmentId)
     {
