@@ -141,7 +141,7 @@ public function getAvailableSlots(Request $request, $doctorId, $subSpecializatio
     $days = [];
     for ($i = 0; $i < 7; $i++) {
         $date     = now()->copy()->addDays($i);
-        $dateStr  = $date->format('Y-m-d');
+        $dateStr  = $date->format('d-m-Y');
         $weekday  = $date->format('l');
 
         $daySlots = [];
