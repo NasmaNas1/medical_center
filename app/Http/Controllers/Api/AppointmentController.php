@@ -211,8 +211,8 @@ public function getAvailableSlots(Request $request, $doctorId, $subSpecializatio
         }
 
         $validated = $validator->validated();
-        $appointmentDateTime = Carbon::parse($validated['appointment_date']);
-
+        $appointmentDateTime = \Carbon\Carbon::createFromFormat('d-m-Y H:i', $validated['appointment_date'])
+                                   ->seconds(0);
         // لهوس حد 7 أيام
         $maxBookingDate = now()->addDays(7)->endOfDay();
         if ($appointmentDateTime->gt($maxBookingDate)) {

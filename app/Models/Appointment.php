@@ -56,10 +56,10 @@ public function notifications()
 {
     return $this->hasMany(Notification::class);
 }
-protected $casts = [
-    'appointment_date' => 'datetime'
-];
 
 protected $dates = ['start_time', 'end_time'];
 
+protected $casts = [
+  'appointment_date' => 'datetime:d-m-Y H:i',
+];
 }
