@@ -72,7 +72,7 @@ Route::middleware(['auth:sanctum', 'doctor'])->group(function () {
     Route::get('appointments/weekly/{doctorId}',[AppointmentController::class,'getWeeklyAppointments']);
     Route::get('/doctors/{id}/appointments/status/{status}', [AppointmentController::class, 'getAppointmentsByStatus']);
     Route::get('/doctors/{id}/appointments/patients-count', [AppointmentController::class, 'getPatientsCountByStatus']);
-
+    Route::post('appointments/{id}/attendance', [AppointmentController::class, 'markAttendance']);
     Route::post('/doctor-schedules', [DoctorScheduleController::class, 'store']);
     Route::post('/doctor-schedules/{scheduleId}/update', [DoctorScheduleController::class, 'updateSchedule']);
     Route::get('/doctors/{doctorId}/schedules/available', [DoctorScheduleController::class, 'getAvailableSchedules']);

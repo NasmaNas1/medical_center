@@ -16,9 +16,24 @@ use Illuminate\Support\Facades\DB;
 class AppointmentController extends Controller
 {
     use GeneralTrait;
+  
+    private function autoCloseExpiredAppointments(int $doctorId, int $graceMinutes = 0, string $missedStatus = 'no_show'): void
+{
+    // graceMinutes = 0 إذا ما بدك فترة سماح
+    $threshold = now()->subMinutes($graceMinutes);
 
+    \App\Models\Appointment::where('doctor_id', $doctorId)
+        ->whereIn('status', ['pending', 'confirmed'])
+        ->whereNull('attended_at') // إذا عندك attended_at
+        ->whereRaw('TIMESTAMPADD(MINUTE, duration, appointment_date) <= ?', [$threshold])
+        ->update([
+            'status'     => $missedStatus,
+            'updated_at' => now(),
+        ]);
+}
   public function getWeeklyAppointments($doctorId, Request $request)
 {
+    $this->autoCloseExpiredAppointments($doctorId, 0, 'no_show');
     // التحقق من وجود الطبيب
     $doctor = Doctor::find($doctorId);
     if (!$doctor) {
@@ -38,7 +53,9 @@ class AppointmentController extends Controller
 }
 
 public function getAppointmentsByStatus($doctorId, $status)
-{
+{  
+     $this->autoCloseExpiredAppointments($doctorId, 0, 'no_show');
+
     $doctor = Doctor::find($doctorId);
     if (!$doctor) {
         return $this->responseWithJson(null, false, 'الطبيب غير موجود', 404);
@@ -64,7 +81,8 @@ public function getAppointmentsByStatus($doctorId, $status)
 
     // جلب المواعيد بحسب حالة
    public function getPatientsCountByStatus($doctorId)
-{
+{   
+    $this->autoCloseExpiredAppointments($doctorId, 0, 'no_show');
     $doctor = Doctor::find($doctorId);
     if (!$doctor) {
         return $this->responseWithJson(null, false, 'الطبيب غير موجود', 404);
@@ -254,4 +272,42 @@ public function getAvailableSlots(Request $request, $doctorId, $subSpecializatio
 
         return !$exists && $scheduleExists;
     }
+
+ public function markAttendance(Request $request, $appointmentId)
+    {
+       $validator = Validator::make($request->all(), [
+        'attended' => 'required|boolean', // true إذا حضر، false لو ما حضر
+        'notes' => 'nullable|string|max:500',
+               ]);
+      if ($validator->fails()) {
+        return $this->requiredField($validator->errors()->first());
+    }
+     
+    $appointment = Appointment::find($appointmentId);
+      if (!$appointment) {
+         return $this->responseWithJson(null, false, 'الموعد غير موجود', 404);
+      }               
+     if (!in_array($appointment->status, ['pending','confirmed'])) {
+        return $this->responseWithJson(null, false, 'لا يمكن تعديل هذه الحالة', 409);
+                         }
+
+    $attended = $request->boolean('attended');
+
+    // إذا حابّة تمنعي no_show قبل انتهاء الموعد + فترة سماح، فعّلي هالبلوك:
+    
+    $duration = (int)($appointment->duration ?? optional($appointment->subSpecialization)->duration ?? 0);
+    $end = \Carbon\Carbon::parse($appointment->appointment_date)->addMinutes($duration);
+    $grace = (int) env('APPOINTMENT_GRACE_MIN', 10);
+    if ($attended === false && now()->lt($end->copy()->addMinutes($grace))) {
+        return $this->responseWithJson(null, false, "لا يمكنك اعتبار الموعد غياباً قبل مرور فترة السماح.", 422);
+    }
+    
+      $appointment->status = $attended ? 'completed' : 'no_show';
+      if ($request->filled('notes')) {
+               $appointment->notes = $request->input('notes');
+                                    }
+        $appointment->save();
+
+            return $this->responseWithJson(new AppointmentResource($appointment), true, 'تم تحديث حالة الموعد');
 }
+    }

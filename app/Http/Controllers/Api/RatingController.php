@@ -37,9 +37,9 @@ class RatingController extends Controller
 
         
         // تأكد أن الموعد مكتمل
-        // if ($appointment->status !== 'completed') {
-        //     return $this->responseWithJson(null, false, 'لا يمكنك التقييم إلا بعد إتمام الموعد', 403);
-        // }
+        if ($appointment->status !== 'completed') {
+            return $this->responseWithJson(null, false, 'لا يمكنك التقييم إلا بعد إتمام الموعد', 403);
+        }
 
         // تحقق إذا تم تقييم الموعد سابقاً
         $rating =Rating::updateOrCreate(
