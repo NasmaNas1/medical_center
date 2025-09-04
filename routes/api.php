@@ -70,8 +70,8 @@ Route::middleware(['auth:sanctum', 'doctor'])->group(function () {
     Route::post('/logout', [LoginController::class, 'logout']);
     Route::post('/reports', [ReportController::class, 'store']);
     Route::get('appointments/weekly/{doctorId}',[AppointmentController::class,'getWeeklyAppointments']);
-    Route::get('/doctors/{id}/appointments/status/{status}', [AppointmentController::class, 'getAppointmentsByStatus']);
-    Route::get('/doctors/{id}/appointments/patients-count', [AppointmentController::class, 'getPatientsCountByStatus']);
+    Route::get('/doctors/{doctorId}/appointments/status/{status}', [AppointmentController::class, 'getAppointmentsByStatus']);
+    Route::get('/doctors/{doctorId}/appointments/patients-count', [AppointmentController::class, 'getPatientsCountByStatus']);
     Route::post('appointments/{id}/attendance', [AppointmentController::class, 'markAttendance']);
     Route::post('/doctor-schedules', [DoctorScheduleController::class, 'store']);
     Route::post('/doctor-schedules/{scheduleId}/update', [DoctorScheduleController::class, 'updateSchedule']);

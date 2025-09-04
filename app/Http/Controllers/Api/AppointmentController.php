@@ -11,25 +11,29 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Schema;
 
 class AppointmentController extends Controller
 {
     use GeneralTrait;
   
-    private function autoCloseExpiredAppointments(int $doctorId, int $graceMinutes = 0, string $missedStatus = 'no_show'): void
+private function autoCloseExpiredAppointments(int $doctorId, int $graceMinutes = 0, string $missedStatus = 'no_show'): void
 {
-    // graceMinutes = 0 إذا ما بدك فترة سماح
     $threshold = now()->subMinutes($graceMinutes);
 
-    \App\Models\Appointment::where('doctor_id', $doctorId)
+    $q = Appointment::where('doctor_id', $doctorId)
         ->whereIn('status', ['pending', 'confirmed'])
-        ->whereNull('attended_at') // إذا عندك attended_at
-        ->whereRaw('TIMESTAMPADD(MINUTE, duration, appointment_date) <= ?', [$threshold])
-        ->update([
-            'status'     => $missedStatus,
-            'updated_at' => now(),
-        ]);
+        ->whereRaw('TIMESTAMPADD(MINUTE, duration, appointment_date) <= ?', [$threshold]);
+
+    // طبّق الشرط بس إذا العمود موجود
+    if (Schema::hasColumn('appointments', 'attended_at')) {
+        $q->whereNull('attended_at');
+    }
+
+    $q->update([
+        'status'     => $missedStatus,
+        'updated_at' => now(),
+    ]);
 }
   public function getWeeklyAppointments($doctorId, Request $request)
 {
@@ -62,12 +66,12 @@ public function getAppointmentsByStatus($doctorId, $status)
     }
 
     $allowedStatuses = ['pending', 'confirmed', 'cancelled', 'completed', 'no_show'];
-    if (!in_array($status, $allowedStatuses)) {
+    if (!in_array($status, $allowedStatuses ,true)) {
         return $this->responseWithJson(null, false, 'حالة غير صالحة', 400);
     }
 
     $appointments = Appointment::where('doctor_id', $doctorId)
-        ->where('status', $status)
+        ->where('appointments.status', $status)
         ->with(['patient', 'subSpecialization'])
         ->orderBy('appointment_date', 'asc')
         ->get();
@@ -83,6 +87,7 @@ public function getAppointmentsByStatus($doctorId, $status)
    public function getPatientsCountByStatus($doctorId)
 {   
     $this->autoCloseExpiredAppointments($doctorId, 0, 'no_show');
+    
     $doctor = Doctor::find($doctorId);
     if (!$doctor) {
         return $this->responseWithJson(null, false, 'الطبيب غير موجود', 404);
