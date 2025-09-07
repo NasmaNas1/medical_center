@@ -314,11 +314,10 @@ public function markAttendance(Request $request, $appointmentId)
         return $this->responseWithJson(null, false, "لا يمكنك اعتبار الموعد غياباً قبل مرور فترة السماح.", 422);
     }
 
-    // 🔴 الشرط الجديد: منع completed إذا الموعد لسا ما صار
+   
     if ($attended === true && now()->lt(\Carbon\Carbon::parse($appointment->appointment_date))) {
         return $this->responseWithJson(null, false, "لا يمكنك اعتبار الموعد مكتمل قبل موعده.", 422);
     }
-
     $appointment->status = $attended ? 'completed' : 'no_show';
 
     if ($request->filled('notes')) {

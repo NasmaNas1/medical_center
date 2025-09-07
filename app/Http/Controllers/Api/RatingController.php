@@ -10,7 +10,7 @@ use App\Models\Doctor;
 use Illuminate\Http\Request;
 use App\Http\Resources\RatingResource;
 use App\Http\Resources\DoctorAverageRatingResource;
-
+use App\Http\Resources\TopDoctorResource;
 
 use Illuminate\Support\Facades\Validator;
 
@@ -70,5 +70,25 @@ class RatingController extends Controller
         true,
     );
     }
+
+public function getTopRatedDoctorsBySpecialization()
+{
+    $doctors = Doctor::with('Specialization')
+        ->withAvg('ratings', 'rating') // يحسب متوسط التقييم لكل دكتور
+        ->orderByDesc('ratings_avg_rating')
+        ->get();
+
+    $grouped = $doctors->groupBy('specialization_id')->map(function ($group) {
+        return $group->first(); // بياخد أعلى دكتور بكل اختصاص
+    })->values();
+
+    return $this->responseWithJson(
+        TopDoctorResource::collection($grouped),
+        true
+    );
+}
+
+
+
 
 }

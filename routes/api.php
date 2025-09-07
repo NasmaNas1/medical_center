@@ -47,6 +47,7 @@ Route::get('/sub-specializations/by-specialization/{id}', [SubSpecializationCont
 Route::get('/doctor/{id}', [DoctorController::class, 'index']);
 Route::get('/doctors/by-specialization/{specialization_id}', [DoctorController::class, 'getBySpecialization']);
 Route::get('/showOpinions', [OpinionController::class, 'show']);
+Route::get('/top-rated-doctors', [RatingController::class, 'getTopRatedDoctorsBySpecialization']);
 
 // تقارير المرضى
 
