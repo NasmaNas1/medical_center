@@ -19,22 +19,33 @@ class AppointmentController extends Controller
   
 private function autoCloseExpiredAppointments(int $doctorId, int $graceMinutes = 0, string $missedStatus = 'no_show'): void
 {
-    $threshold = now()->subMinutes($graceMinutes);
+    $now = now();
+    $endOfWork = $now->copy()->setTime(18, 0, 0); // نهاية الدوام 6:00 مساءً
 
     $q = Appointment::where('doctor_id', $doctorId)
         ->whereIn('status', ['pending', 'confirmed'])
-        ->whereRaw('TIMESTAMPADD(MINUTE, duration, appointment_date) <= ?', [$threshold]);
+        ->whereDate('appointment_date', $now->toDateString());
 
-    // طبّق الشرط بس إذا العمود موجود
-    if (Schema::hasColumn('appointments', 'attended_at')) {
-        $q->whereNull('attended_at');
+    // إذا الوقت بعد نهاية الدوام → كل المواعيد اللي لسا ما اتحدثت بتروح no_show
+    if ($now->gte($endOfWork)) {
+        $q->update([
+            'status'     => $missedStatus,
+            'updated_at' => now(),
+        ]);
+        return;
     }
+
+    // غير هيك: يشتغل المنطق العادي (مدة الموعد + فترة السماح)
+    $threshold = $now->subMinutes($graceMinutes);
+
+    $q->whereRaw('TIMESTAMPADD(MINUTE, duration, appointment_date) <= ?', [$threshold]);
 
     $q->update([
         'status'     => $missedStatus,
         'updated_at' => now(),
     ]);
 }
+
   public function getWeeklyAppointments($doctorId, Request $request)
 {
     $this->autoCloseExpiredAppointments($doctorId, 0, 'no_show');
@@ -282,7 +293,6 @@ private function isSlotAvailable($doctorId, Carbon $dateTime)
     return !$exists && $scheduleExists;
 }
 
-
 public function markAttendance(Request $request, $appointmentId)
 {
     $validator = Validator::make($request->all(), [
@@ -305,21 +315,38 @@ public function markAttendance(Request $request, $appointmentId)
 
     $attended = $request->boolean('attended');
 
-    // إذا حابّة تمنعي no_show قبل انتهاء الموعد + فترة سماح
+    // وقت الموعد
+    $start = \Carbon\Carbon::parse($appointment->appointment_date);
     $duration = (int)($appointment->duration ?? optional($appointment->subSpecialization)->duration ?? 0);
-    $end = \Carbon\Carbon::parse($appointment->appointment_date)->addMinutes($duration);
-    $grace = (int) env('APPOINTMENT_GRACE_MIN', 10);
+    $end = $start->copy()->addMinutes($duration);
 
-    if ($attended === false && now()->lt($end->copy()->addMinutes($grace))) {
-        return $this->responseWithJson(null, false, "لا يمكنك اعتبار الموعد غياباً قبل مرور فترة السماح.", 422);
+    $now = now();
+
+    // ✅ حالة الغياب
+    if ($attended === false) {
+        // إذا الموعد لسا ما بلش
+        if ($now->lt($start)) {
+            return $this->responseWithJson(null, false, "لا يمكنك اعتبار الموعد غياباً قبل أن يبدأ.", 422);
+        }
+
+        // إذا خلص الموعد → مسموح تعمله no_show
+        if ($now->gte($end)) {
+            $appointment->status = 'no_show';
+        } else {
+            return $this->responseWithJson(null, false, "لا يمكنك اعتبار الموعد غياباً أثناء انعقاده.", 422);
+        }
     }
 
-   
-    if ($attended === true && now()->lt(\Carbon\Carbon::parse($appointment->appointment_date))) {
-        return $this->responseWithJson(null, false, "لا يمكنك اعتبار الموعد مكتمل قبل موعده.", 422);
-    }
-    $appointment->status = $attended ? 'completed' : 'no_show';
+    // ✅ حالة الحضور
+    if ($attended === true) {
+        if ($now->lt($start)) {
+            return $this->responseWithJson(null, false, "لا يمكنك اعتبار الموعد مكتمل قبل موعده.", 422);
+        }
 
+        $appointment->status = 'completed';
+    }
+
+    // ملاحظات
     if ($request->filled('notes')) {
         $appointment->notes = $request->input('notes');
     }
@@ -328,5 +355,6 @@ public function markAttendance(Request $request, $appointmentId)
 
     return $this->responseWithJson(new AppointmentResource($appointment), true, 'تم تحديث حالة الموعد');
 }
+
 
     }
